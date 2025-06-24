@@ -5,18 +5,15 @@ from nltk import word_tokenize, sent_tokenize, pos_tag, ne_chunk
 from nltk.tree import Tree
 
 # Set up NLTK data path
-nltk_data_path = "/mnt/data/PROJECTS/Question_generator/nltk_data"
+nltk_data_path = "./nltk_data"  # Changed to a local directory for simplicity
 os.makedirs(nltk_data_path, exist_ok=True)
 nltk.data.path.append(nltk_data_path)
 
 # Download required NLTK resources
-resources = ['punkt', 'averaged_perceptron_tagger', 'averaged_perceptron_tagger_eng', 'maxent_ne_chunker', 'maxent_ne_chunker_tab', 'words']
+resources = ['punkt', 'averaged_perceptron_tagger', 'averaged_perceptron_tagger_eng', 
+             'maxent_ne_chunker', 'maxent_ne_chunker_tab', 'words']
 for resource in resources:
-    try:
-        nltk.download(resource, download_dir=nltk_data_path, quiet=True)
-    except Exception as e:
-        print(f"Failed to download {resource}: {e}")
-        exit(1)
+    nltk.download(resource, download_dir=nltk_data_path, quiet=True)
 
 # Define common stopwords
 stopwords = {'a', 'an', 'the', 'and', 'or', 'but', 'if', 'because', 'as', 'what',
@@ -33,29 +30,8 @@ section_headers = {'key', 'features', 'causes', 'aftermath', 'survivors', 'signi
 
 def extract_entities(sentence):
     words = word_tokenize(sentence)
-    try:
-        pos_tags = pos_tag(words, lang='eng')
-    except:
-        pos_tags = [(word, 'NN') for word in words]
-    
-    try:
-        tree = ne_chunk(pos_tags)
-    except:
-        entities = {'PERSON': [], 'ORGANIZATION': [], 'LOCATION': [], 'DATE': [], 'GPE': []}
-        for i, (word, tag) in enumerate(pos_tags):
-            if tag == 'NNP':
-                entity = word
-                j = i + 1
-                while j < len(pos_tags) and pos_tags[j][1] == 'NNP':
-                    entity += " " + pos_tags[j][0]
-                    j += 1
-                if "million" in sentence.lower() and "ago" in sentence.lower():
-                    entities['DATE'].append(entity)
-                elif any(loc_word in entity.lower() for loc_word in ['peninsula', 'crater', 'india', 'mexico']):
-                    entities['GPE'].append(entity)
-                else:
-                    entities['PERSON'].append(entity)
-        return entities
+    pos_tags = pos_tag(words, lang='eng')
+    tree = ne_chunk(pos_tags)
     
     entities = {'PERSON': [], 'ORGANIZATION': [], 'LOCATION': [], 'DATE': [], 'GPE': []}
     for subtree in tree:
@@ -69,10 +45,7 @@ def extract_entities(sentence):
 
 def extract_key_terms(sentence):
     words = word_tokenize(sentence)
-    try:
-        pos_tags = pos_tag(words, lang='eng')
-    except:
-        pos_tags = [(word, 'NN') for word in words]
+    pos_tags = pos_tag(words, lang='eng')
     
     key_terms = []
     for word, tag in pos_tags:
@@ -85,10 +58,7 @@ def extract_key_terms(sentence):
 def generate_fill_in_blank(sentence):
     questions = []
     words = word_tokenize(sentence)
-    try:
-        pos_tags = pos_tag(words, lang='eng')
-    except:
-        pos_tags = [(word, 'NN') for word in words]
+    pos_tags = pos_tag(words, lang='eng')
     
     for i, (word, tag) in enumerate(pos_tags):
         if (tag.startswith('NN') and len(word) > 3 and word.lower() not in stopwords and 
@@ -117,10 +87,7 @@ def generate_true_false(sentence):
     questions.append(f"True or False: {true_statement}")
     
     words = word_tokenize(sentence)
-    try:
-        pos_tags = pos_tag(words, lang='eng')
-    except:
-        pos_tags = [(word, 'NN') for word in words]
+    pos_tags = pos_tag(words, lang='eng')
     
     for i, (word, tag) in enumerate(pos_tags):
         if tag.startswith('VB') and word.lower() in ['eliminated', 'survived', 'caused', 'included']:
